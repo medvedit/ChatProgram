@@ -22,7 +22,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
     private final JPanel panelTop = new JPanel(new GridLayout(2,3)); // верхняя панелька для информации, и для полезной, в том числе.
     private final JTextField ftIPAddress = new JTextField("127.0.0.1"); // с каким IP адресом соединяться.
     private final JTextField tfPort = new JTextField("8189"); // с каким портом соединяться.
-    private final JCheckBox cbAlwaysOnTop = new JCheckBox("Поверх всех окон"); // галочка, которая будет говорить находится ли наш Client по вверх основных окон или не находится.
+    private final JCheckBox cbAlwaysOnTop = new JCheckBox("На передний план"); // галочка, которая будет говорить находится ли наш Client по вверх основных окон или не находится.
     private final JTextField tfLogin = new JTextField("Витя Пупкин"); // текст с логином.
     private final JPasswordField tfPassword = new JPasswordField("123456"); // текст с паролем.
     // PasswordField это тот же TextField, но маскирующий набранный текст в звездочки(*). PasswordField не дает забрать
@@ -31,9 +31,9 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
     private final JButton btnLogin = new JButton("Login"); // кнопка логин.
 
     private final JPanel panelBottom = new JPanel(new BorderLayout()); // верхняя панелька для информации, и для полезной, в том числе.
-    private final JButton btnDisconnect = new JButton("Disconnect"); // кнопка разъединения
+    private final JButton btnDisconnect = new JButton("<html><b>Disconnect</b><html>"); // кнопка разъединения
     private final JTextField tfMessage = new JTextField(); // окно для набора сообщений в переписке
-    private final JButton btnSend = new JButton("Send"); // кнопка Send (отправить)
+    private final JButton btnSend = new JButton("<html><b>Send</b><html>"); // кнопка Send (отправить)
     private final JList<String> userList = new JList<>(); // Создали область панельки в который будет добавляться список пользователей чата.
 
     private boolean shownIoErrors = false;
