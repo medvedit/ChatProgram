@@ -37,7 +37,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
 
     @Override
     public void onServerStart(ServerSocketThread thread) {
-        putLog("Сервер подключен!");
+        putLog("Сервер запущен...");
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
 
     @Override
     public void onServerException(ServerSocketThread t, Throwable e) {
-        putLog("Сервер отключен!");
+        putLog("Сервер остановлен!");
         e.printStackTrace();
     }
 
