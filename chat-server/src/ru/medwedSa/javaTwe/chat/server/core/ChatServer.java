@@ -13,26 +13,34 @@ import java.text.SimpleDateFormat;
 public class ChatServer implements ServerSocketThreadListener, SocketThreadListener { //
     private final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
     private final int SERVER_SOCKET_TIMEOUT = 2000;
+
     int counter = 0;
     ServerSocketThread server; // создали server от класса ServerSocketThread
+    ChatSeverListener listener;
+
+    public ChatServer(ChatSeverListener listener) {
+        this.listener = listener;
+    }
+
 
     public void start(int port) { // метод запуска чат_сервера
         if (server != null && server.isAlive()) { // если сервер существует (активен) И уже живой (работает),
-            System.out.println("Сервер уже работает!"); // просто выводим лог в консоль
+            putLog("Сервер уже работает!"); // просто выводим лог в консоль
         } else { // иначе запускаем сервер
-            server = new ServerSocketThread(this,"Чат_приложение." + counter++, port, SERVER_SOCKET_TIMEOUT); // говорим, что server это новый ServerSocketThread
+            server = new ServerSocketThread(this,"Чат_приложение-" + counter++, port, SERVER_SOCKET_TIMEOUT); // говорим, что server это новый ServerSocketThread
         }
     }
     public void stop() { // метод остановки чат_сервера
         if (server == null || !server.isAlive()) { // если сервер не существует (не активен) ИЛИ сервер не живой, то
-            System.out.println("Сервер уже остановлен или еще не запускался..."); // выводим лог в консоль
+            putLog("Сервер уже остановлен или еще не запускался..."); // выводим лог в консоль
         } else { // иначе останавливаем сервер
             server.interrupt(); // отправили команду прерывания работы сервера в ServerSocketThread, в метод run
         }
     }
     private void putLog(String msg) {
-        msg = DATE_FORMAT.format(System.currentTimeMillis()) + " " + Thread.currentThread().getName() + ": " + msg;
-        System.out.println(msg);
+        msg = DATE_FORMAT.format(System.currentTimeMillis()) +
+                " " + Thread.currentThread().getName() + ": " + msg;
+        listener.onChatServerMessage(msg);
     }
 
     //<editor-fold desc="Переопределенные метода от интерфейса ServerSocketThreadListener">

@@ -1,25 +1,26 @@
 package ru.medwedSa.javaTwe.chat.server.gui;
 
 import ru.medwedSa.javaTwe.chat.server.core.ChatServer;
+import ru.medwedSa.javaTwe.chat.server.core.ChatSeverListener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-                // GUI (графический пользовательский интерфейс)
-public class ServerGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler { // Внешний вид чат_бота.
-    // Добавили интерфейс ActionListener для установки события, нажатия на кнопку.
-    // Добавили интерфейс Thread.UncaughtExceptionHandler обработчик по умолчанию для не пойманных исключений.
-    /* Переменные для размера визуального окна приложения */
-    private static final int POS_X = 1355; // X
-    private static final int POS_Y = 65; // Y
-    private static final int WINDOW_WIDTH = 200; // WIDTH
-    private static final int WINDOW_HEIGHT = 100; // HEIGHT
+// GUI (графический пользовательский интерфейс)
+public class ServerGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, ChatSeverListener { // Внешний вид чат_бота.
 
-    private final ChatServer server = new ChatServer();
+    private static final int POS_X = 1065; // X
+    private static final int POS_Y = 65; // Y
+    private static final int WINDOW_WIDTH = 600; // WIDTH
+    private static final int WINDOW_HEIGHT = 300; // HEIGHT
+
+    private final ChatServer server = new ChatServer(this);
     private final JButton btnStart = new JButton("Start"); // Кнопка в визуальное окно.
     private final JButton btnStop = new JButton("Stop"); // Кнопка в визуальное окно.
+    private final JPanel panelTop = new JPanel(new GridLayout(1,2));
+    private final JTextArea log = new JTextArea();
 
     private ServerGUI() { // Конструктор визуализации окна приложения.
         //(Thread.setDefaultUncaughtExceptionHandler-перевод) установить обработчик по умолчанию для не пойманных исключений.
@@ -33,15 +34,17 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         setResizable(false); // Рамка окна не изменяема.
         setTitle("Chat Server"); // Заголовок, имя созданного окна.
         setAlwaysOnTop(true); // Должно ли созданное окно быть на переднем плане среди всех окон.
-        setLayout(new GridLayout(1, 2)); // Новый лояут в виде сетки строк-1, столбцов-2
-        // setLayout-расположение компонентов(в нашем случае кнопок) в
-        // созданном окне.
+        log.setEditable(false);
+        log.setLineWrap(true);
+        JScrollPane scrollLog = new JScrollPane(log);
         btnStart.addActionListener(this); // Говорим, что кнопка btnStart - это объект ActionListener.
         btnStop.addActionListener(this); // и btnStop так же.
         // Соответственно! Нажатие кнопок btnStart и btnStop приведет исполнение кода в переопределенный метод
         // actionPerformed(ActionEvent e) от интерфейса ActionListener.
-        add(btnStart); // Добавили в лояут кнопку Start.
-        add(btnStop); // ... Stop.
+        panelTop.add(btnStart);
+        panelTop.add(btnStop);
+        add(panelTop, BorderLayout.NORTH);
+        add(scrollLog, BorderLayout.CENTER);
         setVisible(true); // Запустили визуализацию.
     }
 
@@ -77,11 +80,13 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
     //</editor-fold>
 
-
-
-
-
-
+    @Override
+    public void onChatServerMessage(String msg) {
+        SwingUtilities.invokeLater(( ) -> {
+            log.append(msg + "\n");
+            log.setCaretPosition(log.getDocument().getLength());
+        });
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() { // создаем новый объект интерфейса Runnable()
