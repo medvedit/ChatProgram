@@ -9,10 +9,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Vector;
 
 public class ChatServer implements ServerSocketThreadListener, SocketThreadListener { //
     private final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
     private final int SERVER_SOCKET_TIMEOUT = 2000;
+    private Vector<SocketThread> clients = new Vector<>();
 
     int counter = 0;
     ServerSocketThread server; // создали server от класса ServerSocketThread
@@ -30,6 +32,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
             server = new ServerSocketThread(this,"Чат_приложение-" + counter++, port, SERVER_SOCKET_TIMEOUT); // говорим, что server это новый ServerSocketThread
         }
     }
+
     public void stop() { // метод остановки чат_сервера
         if (server == null || !server.isAlive()) { // если сервер не существует (не активен) ИЛИ сервер не живой, то
             putLog("Сервер уже остановлен или еще не запускался..."); // выводим лог в консоль
@@ -37,6 +40,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
             server.interrupt(); // отправили команду прерывания работы сервера в ServerSocketThread, в метод run
         }
     }
+
     private void putLog(String msg) {
         msg = DATE_FORMAT.format(System.currentTimeMillis()) +
                 " " + Thread.currentThread().getName() + ": " + msg;
@@ -87,16 +91,20 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     @Override
     public void onSocketStop(SocketThread t) {
         putLog("Клиент отключен.");
+        clients.remove(t);
     }
 
     @Override
     public void onSocketReady(SocketThread t, Socket socket) {
         putLog("Клиент готов к общению...");
+        clients.add(t);
     }
 
     @Override
     public void onReceiveString(SocketThread t, Socket s, String msg) {
-        t.sendMessage("echo: " + msg);
+        for (SocketThread thread : clients) {
+            thread.sendMessage(t.getName() + " " + msg);
+        }
     }
 
     @Override

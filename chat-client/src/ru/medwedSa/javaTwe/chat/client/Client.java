@@ -14,7 +14,7 @@ import java.net.Socket;
 /* В этом классе комментарии добавлены только к тем методам и строчкам кода,
    которые отличны от уже написанных в файлах, классах этого пакета. */
 public class Client extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, SocketThreadListener {
-    private static final int WIDTH = 400;
+    private static final int WIDTH = 600;
     private static final int HEIGHT = 300;
 
     private final JTextArea log = new JTextArea(); // Создали область панельки в который будет добавляться весь текст из переписки.
@@ -59,7 +59,9 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
         btnSend.addActionListener(this); // слушатель кнопка SEND
         tfMessage.addActionListener(this); // слушатель кнопка ENTER
         btnLogin.addActionListener(this); // слушатель кнопка Login
+        btnDisconnect.addActionListener(this);
 
+        panelBottom.setVisible(false);
 
         panelTop.add(ftIPAddress); // добавили все сообщения, кнопки на верхнюю панель.
         panelTop.add(tfPort); // добавили все сообщения, кнопки на верхнюю панель.
@@ -89,6 +91,8 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
            sendMessage();
         } else if (src == btnLogin) {
             connect();
+        } else if (src == btnDisconnect) {
+            socketThread.close();
         } else { // иначе исключение
             throw new RuntimeException("Добавить, активировать реализацию нового компонента. " +
                     "Возможно отсутствует действие по событию, нажатию на кнопку.");
@@ -171,12 +175,16 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
 
     @Override
     public void onSocketStop(SocketThread t) {
-        putLog("Соединение остановлено.");
+//        putLog("Соединение остановлено.");
+        panelBottom.setVisible(false);
+        panelTop.setVisible(true);
     }
 
     @Override
     public void onSocketReady(SocketThread t, Socket socket) {
-        putLog("Обмен потоками ввода вывода с сервером");
+//        putLog("Обмен потоками ввода вывода с сервером");
+        panelBottom.setVisible(true);
+        panelTop.setVisible(false);
     }
 
     @Override
