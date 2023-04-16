@@ -35,6 +35,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         System.out.println(msg);
     }
 
+    //<editor-fold desc="Переопределенные метода от интерфейса ServerSocketThreadListener">
     @Override
     public void onServerStart(ServerSocketThread thread) {
         putLog("Сервер запущен...");
@@ -67,7 +68,9 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         putLog("Сервер остановлен!");
         e.printStackTrace();
     }
+    //</editor-fold>
 
+     //<editor-fold desc="Переопределенные метода от интерфейса SocketThreadListener">
     @Override
     public void onSocketStart(SocketThread t, Socket s) {
         putLog("Клиент подключился.");
@@ -92,5 +95,6 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     public void onSocketException(SocketThread t, Throwable e) {
         e.printStackTrace();
     }
+    //</editor-fold
 }
 

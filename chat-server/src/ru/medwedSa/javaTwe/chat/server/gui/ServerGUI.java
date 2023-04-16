@@ -1,6 +1,7 @@
 package ru.medwedSa.javaTwe.chat.server.gui;
 
 import ru.medwedSa.javaTwe.chat.server.core.ChatServer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,9 +22,9 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JButton btnStop = new JButton("Stop"); // Кнопка в визуальное окно.
 
     private ServerGUI() { // Конструктор визуализации окна приложения.
-    //(Thread.setDefaultUncaughtExceptionHandler-перевод) установить обработчик по умолчанию для не пойманных исключений.
+        //(Thread.setDefaultUncaughtExceptionHandler-перевод) установить обработчик по умолчанию для не пойманных исключений.
         Thread.setDefaultUncaughtExceptionHandler(this); // Передаем в функцию себя, что потребует добавления
-    // Thread - класс отвечающий за потоки              // интерфейса Thread.UncaughtExceptionHandler в класс ServerGUI
+        // Thread - класс отвечающий за потоки              // интерфейса Thread.UncaughtExceptionHandler в класс ServerGUI
         // (что и сделал), а соответственно добавление интерфейса
         // потребует новое переопределение метода uncaughtException
         // ниже по коду добавлен.
@@ -37,13 +38,14 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         // созданном окне.
         btnStart.addActionListener(this); // Говорим, что кнопка btnStart - это объект ActionListener.
         btnStop.addActionListener(this); // и btnStop так же.
-       // Соответственно! Нажатие кнопок btnStart и btnStop приведет исполнение кода в переопределенный метод
-       // actionPerformed(ActionEvent e) от интерфейса ActionListener.
+        // Соответственно! Нажатие кнопок btnStart и btnStop приведет исполнение кода в переопределенный метод
+        // actionPerformed(ActionEvent e) от интерфейса ActionListener.
         add(btnStart); // Добавили в лояут кнопку Start.
         add(btnStop); // ... Stop.
         setVisible(true); // Запустили визуализацию.
     }
 
+    //<editor-fold desc="Переопределенный метод для реализации интерфейса ActionListener">
     @Override
     public void actionPerformed(ActionEvent e) { // переопределенный метод для реализации интерфейса ActionListener
         Object src = e.getSource(); // создали объект, переменную src в которую складываем произошедшее событие(нажатие на кнопку)
@@ -54,17 +56,18 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         } else { // иначе исключение
             throw new RuntimeException("Добавить, активировать реализацию нового компонента. " +
                     "Возможно отсутствует действие по событию, нажатию на кнопку."); // при дальнейшей
-    // доработке кода, добавлении новой кнопки в визуальном окне, человек ее добавивший, может забыть добавить
-    // реализацию действия по нажатию этой, новой кнопки. Это исключение на этот случай.
+            // доработке кода, добавлении новой кнопки в визуальном окне, человек ее добавивший, может забыть добавить
+            // реализацию действия по нажатию этой, новой кнопки. Это исключение на этот случай.
         }
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Переопределение от UncaughtExceptionHandler">
     /* В этом переопределенном методе создали окно с сообщением msg для вывода описания ошибки.
     Не стал комментировать все строки кода, проще cmd + ПКМ и почитать документацию о каждой функции и методе.
     или пересмотри лекцию №4. */
     @Override
-    public void uncaughtException(Thread t, Throwable e) { // (ГДЕ произошло, ЧТО произошло)
-//        e.printStackTrace();
+    public void uncaughtException(Thread t, Throwable e) { // Переопределение от UncaughtExceptionHandler(ГДЕ произошло, ЧТО произошло)
         String msg = "Исключение в потоке " + t.getName() + "\n" +
                 " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0]; // сообщение
         // о самой ошибке.
@@ -72,6 +75,13 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         JOptionPane.showMessageDialog(null, msg,
                 "Ошибка", JOptionPane.ERROR_MESSAGE); // создание самого окна об ошибке.
     }
+    //</editor-fold>
+
+
+
+
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() { // создаем новый объект интерфейса Runnable()

@@ -78,17 +78,10 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
 
         setVisible(true);
     }
-    // У класса клиент своя точка хода, свой main, т.к. клиент ничего не знает о классе ServerGUI
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Client();
-            }
-        });
-    }
+
+    //<editor-fold desc="Переопределенный метод для реализации интерфейса ActionListener">
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) { // Переопределенный метод для реализации интерфейса ActionListener
         Object src = e.getSource(); // создали объект, переменную src в которую складываем произошедшее событие(нажатие на кнопку)
         if (src == cbAlwaysOnTop) { // если поставили "галочку", то
             setAlwaysOnTop(cbAlwaysOnTop.isSelected()); // галочка стоит-активна функция "по верх..", если снята, то деактивация функции
@@ -101,6 +94,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
                     "Возможно отсутствует действие по событию, нажатию на кнопку.");
         }
     }
+    //</editor-fold>
 
     private void connect() {
         try {
@@ -115,14 +109,13 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
         String msg = tfMessage.getText(); // забрал набранное сообщение
         String userName = tfLogin.getText();// забрал имя пользователя чат_бота
         if ("".equals(msg)) return; // если просто нажата клавиша SEND или ENTER, а сообщение не набрали, то просто дальнейшее ожидание...
-//        log.append(text + "\n"); // добавил забранный текст в поле log (я сделал так, а преподаватель перенес это в метод putLog)
         tfMessage.setText(null); // очистили поле tfMessage
         tfMessage.grabFocus(); // вернули "фокусировку" в поле tfMessage
-//        tfMessage.requestFocusInWindow(); // вернули "фокусировку" в поле tfMessage (еще способ)
 //        putLog(String.format("%s, %s",userName, msg)); // реализация метода putLog
-        wrtMsgToLogFile(msg, userName); // реализация метода записи в файл
+//        wrtMsgToLogFile(msg, userName); // Запуск логирования в файл .txt
         socketThread.sendMessage(msg);
     }
+
     private void wrtMsgToLogFile(String msg, String userName) { // метод записи сообщений в файл .txt
         try (FileWriter out = new FileWriter("/Users/Medwed_SA/Desktop/Education/Java/project_Itellij_IDEA/" +
                 "ChatProgram/chat-common/src/ru/medwedSa/javaTwe/chat/common/Log.txt", true)) {
@@ -135,6 +128,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
             }
         }
     }
+
     private void putLog(String message) { // метод перевода набранного сообщения из поля tfMessage в поле log
         if ("".equals(message)) return;
         SwingUtilities.invokeLater(new Runnable() {
@@ -145,6 +139,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
             }
         });
     }
+
     private void showException(Thread t, Throwable e) { // написали отдельный метод для вывода исключений, для использования его в дальнейших блоках кода.
         String msg;
         StackTraceElement[] ste = e.getStackTrace();
@@ -160,12 +155,15 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
                 "Ошибка",JOptionPane.ERROR_MESSAGE);
     }
 
+    //<editor-fold desc="Переопределение от UncaughtExceptionHandler">
     @Override
-    public void uncaughtException(Thread t, Throwable e) { // обработка исключений
+    public void uncaughtException(Thread t, Throwable e) { // Обработка исключений. Переопределение от UncaughtExceptionHandler
         e.printStackTrace();
         showException(t, e); // вывод окна исключений
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Переопределенные метода от интерфейса SocketThreadListener">
     @Override
     public void onSocketStart(SocketThread t, Socket s) {
         putLog("Соединение установлено...");
@@ -189,5 +187,21 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
     @Override
     public void onSocketException(SocketThread t, Throwable e) {
         showException(t, e);
+    }
+    //</editor-fold>
+
+
+
+
+
+
+    // У класса клиент своя точка хода, свой main, т.к. клиент ничего не знает о классе ServerGUI
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Client();
+            }
+        });
     }
 }
