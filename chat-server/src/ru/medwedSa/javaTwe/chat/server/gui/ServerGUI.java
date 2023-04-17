@@ -32,7 +32,7 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
         setDefaultCloseOperation(EXIT_ON_CLOSE); // закрытие по нажатию на красный крестик.
         setBounds(POS_X, POS_Y, WINDOW_WIDTH, WINDOW_HEIGHT); // визуальное окно по созданным размерам в переменных.
         setResizable(false); // Рамка окна не изменяема.
-        setTitle("Chat Server"); // Заголовок, имя созданного окна.
+        setTitle("Сервер запуска чата"); // Заголовок, имя созданного окна.
         setAlwaysOnTop(true); // Должно ли созданное окно быть на переднем плане среди всех окон.
         log.setEditable(false);
         log.setLineWrap(true);
