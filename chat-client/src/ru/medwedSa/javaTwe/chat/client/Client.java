@@ -1,5 +1,15 @@
 package ru.medwedSa.javaTwe.chat.client;
+/**
+ * Логины в базе данных:
+ * medved
+ * hhdhdhdds
+ * asdasdf
+ * fsddfhrq
+ * yghtyhrb
+ * Пароль 123
+ */
 
+import ru.medwedSa.javaTwe.chat.common.Messages;
 import ru.medwedSa.javaTwe.network.SocketThread;
 import ru.medwedSa.javaTwe.network.SocketThreadListener;
 
@@ -151,7 +161,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
             msg = "Пустая трассировка стека";
         else {
             msg = "Исключение в потоке " + t.getName() + "\n" +
-                    " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0 ];
+                    " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0];
             JOptionPane.showMessageDialog(null, msg,
                     "Ошибка",JOptionPane.ERROR_MESSAGE);
         }
@@ -175,16 +185,17 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
 
     @Override
     public void onSocketStop(SocketThread t) {
-//        putLog("Соединение остановлено.");
         panelBottom.setVisible(false);
         panelTop.setVisible(true);
     }
 
     @Override
     public void onSocketReady(SocketThread t, Socket socket) {
-//        putLog("Обмен потоками ввода вывода с сервером");
         panelBottom.setVisible(true);
         panelTop.setVisible(false);
+        String login = tfLogin.getText();
+        String pass = new String(tfPassword.getPassword());
+        t.sendMessage(Messages.getAuthRequest(login, pass));
     }
 
     @Override
@@ -203,7 +214,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
 
 
 
-    // У класса клиент своя точка хода, свой main, т.к. клиент ничего не знает о классе ServerGUI
+    // У класса клиент своя точка входа, свой main, т.к. клиент ничего не знает о классе ServerGUI
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
