@@ -169,7 +169,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         String msgType = arr[0];
         switch (msgType) {
             case Messages.USER_BROADCAST:
-                sendToAllAuthorized(Messages.getMsgBroadcast(client.getNickname(), msg));
+                sendToAllAuthorized(Messages.getMsgBroadcast(client.getNickname(), arr[1]));
                 break;
             default:
                 client.msgFormatError(msg);
