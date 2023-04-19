@@ -30,7 +30,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         if (server != null && server.isAlive()) { // если сервер существует (активен) И уже живой (работает),
             putLog("Сервер уже работает!"); // просто выводим лог в консоль
         } else { // иначе запускаем сервер
-            server = new ServerSocketThread(this,"Чат_приложение-" + counter++, port, SERVER_SOCKET_TIMEOUT); // говорим, что server это новый ServerSocketThread
+            server = new ServerSocketThread(this, "Чат_приложение-" + counter++, port, SERVER_SOCKET_TIMEOUT); // говорим, что server это новый ServerSocketThread
         }
     }
 
@@ -59,6 +59,9 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     public void onServerStop(ServerSocketThread thread) {
         putLog("Сервер сокет остановлен.");
         SqlClient.disconnect(); // Отключаемся от базы данных.
+        for (SocketThread client : clients) { // все клиенты остановлены при остановке сервера.
+            client.close();
+        }
     }
 
     @Override
@@ -74,9 +77,9 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     @Override
     public void onSocketAccepted(ServerSocketThread t, ServerSocket s, Socket client) {
         putLog("Клиент подключается...");
-        String name = "SocketThread" + client.getInetAddress() + ": " +  client.getPort();
+        String name = "SocketThread" + client.getInetAddress() + ": " + client.getPort();
         new ClientThread(this, name, client); // И раз мы создали дополнительные свойства у ClientThread,
-                                        // то и в этой строке создаем не SocketThread (как было ранее), а ClientThread.
+        // то и в этой строке создаем не SocketThread (как было ранее), а ClientThread.
     }
 
     @Override
@@ -86,26 +89,32 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     }
     //</editor-fold>
 
-     //<editor-fold desc="Переопределенные метода от интерфейса SocketThreadListener">
+    //<editor-fold desc="Переопределенные метода от интерфейса SocketThreadListener">
     @Override
-    public void onSocketStart(SocketThread t, Socket s) {
+    public synchronized void onSocketStart(SocketThread t, Socket s) {
         putLog("Клиент подключился.");
     }
 
     @Override
-    public void onSocketStop(SocketThread t) {
-        putLog("Клиент отключен.");
-        clients.remove(t);
+    public synchronized void onSocketStop(SocketThread t) {
+        ClientThread client = (ClientThread) t; // Взяли ние авторизованного клиента.
+        clients.remove(client); // Клиент удаляется...
+        if (client.isAuthorized() && client.isReconnecting()) { // Если наш клиент был вообще авторизован, то
+            sendToAllAuthorized(Messages.getMsgBroadcast("На сервере ",
+                    client.getNickname() + " отключился.")); // Отправляем всем подключенным клиентам сообщение
+            // том, что клиент отключился.
+        }
+        sendToAllAuthorized(Messages.getUserList(getUsers()));
     }
 
     @Override
-    public void onSocketReady(SocketThread t, Socket socket) {
+    public synchronized void onSocketReady(SocketThread t, Socket socket) {
         putLog("Клиент готов к общению...");
         clients.add(t);
     }
 
     @Override
-    public void onReceiveString(SocketThread t, Socket s, String msg) {
+    public synchronized void onReceiveString(SocketThread t, Socket s, String msg) {
         ClientThread client = (ClientThread) t;
         if (client.isAuthorized()) { // Если клиент авторизован, то
             handleAuthMsg(client, msg);
@@ -120,29 +129,54 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     }
     //</editor-fold
 
+    /**
+     * 1. Если строка не такая, которую ожидаем || у желающего подключиться пользователя не соответствует
+     * login || password - вернули msgFormatError
+     * 2. Если nickname пустой -> ошибка авторизации, отключили со стороны сервера.
+     * 3. Иначе принимаем авторизацию пользователя, подключаем сос стороны сервера и сообщаем всем авторизованным
+     * об подключении этого nickname.
+     * @param client
+     * @param msg
+     */
     private void handleNonAuthMsg(ClientThread client, String msg) {
         String[] arr = msg.split(Messages.DELIMITER);
         if (arr.length != 3 || !arr[0].equals(Messages.AUTH_REQUEST)) {
             client.msgFormatError(msg);
             return;
         }
-        String login = arr[1];
-        String password = arr[2];
-        String nickname = SqlClient.getNick(login, password);
+        String login = arr[1]; // Забрали login.
+        String password = arr[2]; // Забрали password.
+        String nickname = SqlClient.getNick(login, password); // Если тут -> SqlClient.getNick все ok,то забрали nickname.
         if (nickname == null) {
             putLog("Ошибка ввода login " + login);
-            client.authFail();
+            client.authFail(); // отключаем клиента со стороны сервера.
             return;
+        } else {
+            ClientThread oldClient = findClientByNickname(nickname);
+            client.authAccept(nickname); // Иначе принимаем авторизацию пользователя
+            if (oldClient == null) {
+                sendToAllAuthorized(Messages.getMsgBroadcast("Server connect", nickname + " подключен."));
+            } else {
+                oldClient.reconnect();
+                clients.remove(oldClient);
+            }
         }
-        client.authAccept(nickname);
-        sendToAllAuthorized(Messages.getMsgBroadcast("Server connect", nickname + " подключен."));
+        sendToAllAuthorized(Messages.getUserList(getUsers()));
     }
 
     private void handleAuthMsg(ClientThread client, String msg) {
-        sendToAllAuthorized(msg);
+        String[] arr = msg.split(Messages.DELIMITER);
+        String msgType = arr[0];
+        switch (msgType) {
+            case Messages.USER_BROADCAST:
+                sendToAllAuthorized(Messages.getMsgBroadcast(client.getNickname(), msg));
+                break;
+            default:
+                client.msgFormatError(msg);
+        }
     }
 
-    private void sendToAllAuthorized(String msg) {
+    private synchronized void sendToAllAuthorized(String msg) {
         for (SocketThread socketThread : clients) {
             ClientThread client = (ClientThread) socketThread;
             if (!client.isAuthorized()) {
@@ -151,6 +185,34 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
                 client.sendMessage(msg);
             }
         }
+    }
+
+    private String getUsers() { // Собираем всех авторизованных пользователей.
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < clients.size(); i++) {
+            ClientThread client = (ClientThread) clients.get(i);
+            if (!client.isAuthorized()) continue; // если не авторизован - ничего не делаем
+            sb.append(client.getNickname()).append(Messages.DELIMITER); // иначе в sb добавили пользователя
+            // с никнеймом + делиметр.
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Для того, что бы реализовывать в приложении возможность авторизации с разных устройств для одного пользователя
+     * или наоборот, запрет таких действий или .... Нужно понимать, а есть ли в данный момент времени,
+     * зарегистрированный/подключенный пользователь с таким nickname.
+     * @param nickname
+     * @return
+     */
+    private synchronized ClientThread findClientByNickname(String nickname) { // Найти клиента по нику.
+        for (int i = 0; i < clients.size(); i++) {
+            ClientThread client = (ClientThread) clients.get(i);
+            if (!client.isAuthorized()) continue; // если не авторизован - ничего не делаем
+            if (client.getNickname().equals(nickname)) // если есть совпадение, то
+                return client; // сообщили об этом.
+        }
+        return null; // иначе...
     }
 }
 

@@ -45,3 +45,15 @@
 Витя Пупкин: ывавыавы
 Витя Пупкин: ываыва
 Витя Пупкин: ываыва
+java.text.SimpleDateFormat@8140d380:  medved: Привет
+java.text.SimpleDateFormat@8140d380:  medved: как тела?
+java.text.SimpleDateFormat@8140d380:  medved: привет
+2023-04-19T14:59:50.469653:  medved: Привет
+2023-04-19T15:04:34.892117:  medved: gjhghg
+15:13:37:  medved: Привеееееет
+ср, апр. 19, 2023 @ 15:15:50:  medved: Привет.........
+ср, апр. 19, 2023 @ 22:09:31:  medved: dasdsdasd
+ср, апр. 19, 2023 @ 22:09:39:  hhdhdhdds: asdadasd
+ср, апр. 19, 2023 @ 22:19:17:  medved: sdfsdfdsfasdf
+ср, апр. 19, 2023 @ 22:19:21:  yghtyhrb: sdfsafsddsf
+ср, апр. 19, 2023 @ 22:19:24:  hhdhdhdds: sdfasfsaf

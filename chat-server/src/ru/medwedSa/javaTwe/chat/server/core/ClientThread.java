@@ -9,6 +9,7 @@ import java.net.Socket;
 public class ClientThread extends SocketThread { // Расширяет функционал клиента со стороны сервера относительно SocketThread.
     private String nickname; // nickname внутри метода.
     private boolean isAuthorized; // Aвторизован.
+    private boolean isReconnecting; // Повторное подключение.
 
     public ClientThread(SocketThreadListener listener, String name, Socket socket) { // Конструктор.
         super(listener, name, socket);
@@ -20,6 +21,15 @@ public class ClientThread extends SocketThread { // Расширяет функ�
 
     public boolean isAuthorized() { // Геттер.
         return isAuthorized;
+    }
+
+    public boolean isReconnecting() { // Геттер.
+        return isReconnecting;
+    }
+
+    void reconnect() {
+        isReconnecting = true;
+        close();
     }
 
     void authAccept(String nickname) { // Принимает авторизацию со стороны сервера.

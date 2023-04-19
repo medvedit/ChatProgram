@@ -30,7 +30,7 @@ public class SqlClient { // Класс который, будет работат
                                                                             // извлечение nickname по login, password.
         try (ResultSet set = statement.executeQuery(query)) { // Ожидаем, что set будет nickname
             if (set.next()) // Если в set есть что читать, не пуст, то
-                return set.getString("nickname");
+                return set.getString("nickname"); // сОхранили в set nickname.
         } catch (SQLException e) {
             throw  new RuntimeException(e);
         }

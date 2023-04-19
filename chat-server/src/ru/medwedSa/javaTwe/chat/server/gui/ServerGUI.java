@@ -71,12 +71,13 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     или пересмотри лекцию №4. */
     @Override
     public void uncaughtException(Thread t, Throwable e) { // Переопределение от UncaughtExceptionHandler(ГДЕ произошло, ЧТО произошло)
-        String msg = "Исключение в потоке " + t.getName() + "\n" +
-                " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0]; // сообщение
-        // о самой ошибке.
-
-        JOptionPane.showMessageDialog(null, msg,
-                "Ошибка", JOptionPane.ERROR_MESSAGE); // создание самого окна об ошибке.
+//        e.printStackTrace();
+//        String msg = "Исключение в потоке " + t.getName() + "\n" +
+//                " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0]; // сообщение
+//        // о самой ошибке.
+//
+//        JOptionPane.showMessageDialog(null, msg,
+//                "Ошибка", JOptionPane.ERROR_MESSAGE); // создание самого окна об ошибке.
     }
     //</editor-fold>
 

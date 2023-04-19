@@ -20,12 +20,19 @@ import java.awt.event.ActionListener;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 /* В этом классе комментарии добавлены только к тем методам и строчкам кода,
    которые отличны от уже написанных в файлах, классах этого пакета. */
 public class Client extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, SocketThreadListener {
     private static final int WIDTH = 600;
     private static final int HEIGHT = 300;
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    private static final DateFormat DATE_FORMAT_LOG = new SimpleDateFormat("EEE, MMM d, yyyy '@' HH:mm:ss");
+    public static final String TITLE = "Чат клиент";
 
     private final JTextArea log = new JTextArea(); // Создали область панельки в который будет добавляться весь текст из переписки.
 
@@ -33,8 +40,8 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
     private final JTextField ftIPAddress = new JTextField("127.0.0.1"); // с каким IP адресом соединяться.
     private final JTextField tfPort = new JTextField("8189"); // с каким портом соединяться.
     private final JCheckBox cbAlwaysOnTop = new JCheckBox("На передний план"); // галочка, которая будет говорить находится ли наш Client по вверх основных окон или не находится.
-    private final JTextField tfLogin = new JTextField("Витя Пупкин"); // текст с логином.
-    private final JPasswordField tfPassword = new JPasswordField("123456"); // текст с паролем.
+    private final JTextField tfLogin = new JTextField("medved"); // текст с логином.
+    private final JPasswordField tfPassword = new JPasswordField("123"); // текст с паролем.
     // PasswordField это тот же TextField, но маскирующий набранный текст в звездочки(*). PasswordField не дает забрать
     // из себя .value , как например может делать TextField. Дело в том, что в PasswordField лежит массив из байтиков и
     // если необходимо забрать информацию из PasswordField - нужно немножко помудрить.
@@ -55,15 +62,11 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // посередине экрана.
         setSize(WIDTH, HEIGHT);
-        setTitle("Чат_Клиент");
+        setTitle(TITLE); // Заголовок, имя окна чата.
         log.setEditable(false); // закрыли возможность писать в панельке log
         log.setLineWrap(true); // перенос отправленного текста сообщения, в окне log, согласно размеру самого окна.
         JScrollPane spLog = new JScrollPane(log); // для области панельки log добавлена возможность скролиться.
         JScrollPane spUser = new JScrollPane(userList); // для области панельки userList добавлена возможность скролиться.
-        String[] users = {"user 1", "user 2", "user 3", "user 4", "user 5", "user 6", // тест визуализация пользователей
-                "user 7", "user 8", "user 9", "user 10", "user 11", "user 12", "user 13", // больше необходимая для настройки
-                "user 14", "user 15_и_у_этого_человека_очень_длинный_ник"}; // размера и проверки скролла окна users
-        userList.setListData(users); // добавили тестовый массив пользователей в панельку spUser
         spUser.setPreferredSize(new Dimension(100,0)); // предпочтительный размер панельки spUser
         cbAlwaysOnTop.addActionListener(this); // активировали "галочку" - по вверх всех окон.
         btnSend.addActionListener(this); // слушатель кнопка SEND
@@ -125,15 +128,14 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
         if ("".equals(msg)) return; // если просто нажата клавиша SEND или ENTER, а сообщение не набрали, то просто дальнейшее ожидание...
         tfMessage.setText(null); // очистили поле tfMessage
         tfMessage.grabFocus(); // вернули "фокусировку" в поле tfMessage
-//        putLog(String.format("%s, %s",userName, msg)); // реализация метода putLog
-//        wrtMsgToLogFile(msg, userName); // Запуск логирования в файл .txt
-        socketThread.sendMessage(msg);
+        wrtMsgToLogFile(msg, userName); // Запуск логирования в файл .txt
+        socketThread.sendMessage(Messages.getTypeBCastFromClient(msg));
     }
 
     private void wrtMsgToLogFile(String msg, String userName) { // метод записи сообщений в файл .txt
         try (FileWriter out = new FileWriter("/Users/Medwed_SA/Desktop/Education/Java/project_Itellij_IDEA/" +
                 "ChatProgram/chat-common/src/ru/medwedSa/javaTwe/chat/common/Log.txt", true)) {
-            out.write(userName + ": " + msg + "\n");
+            out.write(DATE_FORMAT_LOG.format(new Date()) + ":  " + userName + ": " + msg + "\n");
             out.flush();
         } catch (IOException e) {
             if (!shownIoErrors) {
@@ -149,31 +151,32 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
             @Override
             public void run() {
                 log.append(message + "\n");  // добавил забранный текст в поле log
-                log.setCaretPosition(log.getDocument().getLength()); // при логировании устанавливается курсор текста в конц документа
+                log.setCaretPosition(log.getDocument().getLength()); // при логирование устанавливается курсор текста в конц документа
             }
         });
     }
 
     private void showException(Thread t, Throwable e) { // написали отдельный метод для вывода исключений, для использования его в дальнейших блоках кода.
-        String msg;
-        StackTraceElement[] ste = e.getStackTrace();
-        if (ste.length == 0)
-            msg = "Пустая трассировка стека";
-        else {
-            msg = "Исключение в потоке " + t.getName() + "\n" +
-                    " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0];
-            JOptionPane.showMessageDialog(null, msg,
-                    "Ошибка",JOptionPane.ERROR_MESSAGE);
-        }
-        JOptionPane.showMessageDialog(null, msg,
-                "Ошибка",JOptionPane.ERROR_MESSAGE);
+//        String msg;
+//        StackTraceElement[] ste = e.getStackTrace();
+//        if (ste.length == 0)
+//            msg = "Пустая трассировка стека";
+//        else {
+//            msg = "Исключение в потоке " + t.getName() + "\n" +
+//                    " " + e.getClass().getCanonicalName() + ": " + e.getMessage() + "\n" + e.getStackTrace()[0];
+//            JOptionPane.showMessageDialog(null, msg,
+//                    "Ошибка",JOptionPane.ERROR_MESSAGE);
+//        }
+//        JOptionPane.showMessageDialog(null, msg,
+//                "Ошибка",JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
     }
 
     //<editor-fold desc="Переопределение от UncaughtExceptionHandler">
     @Override
     public void uncaughtException(Thread t, Throwable e) { // Обработка исключений. Переопределение от UncaughtExceptionHandler
         e.printStackTrace();
-        showException(t, e); // вывод окна исключений
+//        showException(t, e); // вывод окна исключений
     }
     //</editor-fold>
 
@@ -187,6 +190,8 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
     public void onSocketStop(SocketThread t) {
         panelBottom.setVisible(false);
         panelTop.setVisible(true);
+        setTitle(TITLE);
+        userList.setListData(new String[0]);
     }
 
     @Override
@@ -200,14 +205,44 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
 
     @Override
     public void onReceiveString(SocketThread t, Socket s, String msg) {
-        putLog(msg);
+        handleMessage(msg);
     }
+
 
     @Override
     public void onSocketException(SocketThread t, Throwable e) {
         showException(t, e);
     }
     //</editor-fold>
+
+    void handleMessage(String value) { //Метод форматирования сообщений.
+        String[] arr = value.split(Messages.DELIMITER);
+        String msgType = arr[0];
+        switch (msgType) {
+            case Messages.AUTH_ACCEPT:
+                setTitle("К " + TITLE + " подключился " + arr[1]);
+                break;
+            case Messages.AUTH_DENY:
+                putLog(value);
+                break;
+            case Messages.MSG_FORMAT_ERROR:
+                putLog(value);
+                socketThread.close();
+                break;
+            case Messages.USER_LIST:
+                String users = value.substring(Messages.DELIMITER.length() + Messages.USER_LIST.length());
+                String[] usersArr = users.split(Messages.DELIMITER);
+                Arrays.sort(usersArr);
+                userList.setListData(usersArr);
+                break;
+            case Messages.SERVER_BROADCAST:
+                log.append(DATE_FORMAT.format(Long.parseLong(arr[1])) + " :" + ": "+ arr[2] + ": " + arr[3] + "\n");
+                log.setCaretPosition(log.getDocument().getLength());
+                break;
+            default:
+                throw new RuntimeException("Не известный тип сообщения: " + msgType);
+        }
+    }
 
 
 
