@@ -128,7 +128,7 @@ public class Client extends JFrame implements ActionListener, Thread.UncaughtExc
         if ("".equals(msg)) return; // если просто нажата клавиша SEND или ENTER, а сообщение не набрали, то просто дальнейшее ожидание...
         tfMessage.setText(null); // очистили поле tfMessage
         tfMessage.grabFocus(); // вернули "фокусировку" в поле tfMessage
-        wrtMsgToLogFile(msg, userName); // Запуск логирования в файл .txt
+//        wrtMsgToLogFile(msg, userName); // Запуск логирования в файл .txt
         socketThread.sendMessage(Messages.getTypeBCastFromClient(msg));
     }
 
